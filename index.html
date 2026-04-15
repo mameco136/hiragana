@@ -182,6 +182,20 @@
     .star-bg{position:fixed;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
     .sd{position:absolute;font-size:1.3em;opacity:.1}
 
+    /* ── Difficulty select ── */
+    .diff-row{display:flex;gap:14px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+    .diff-card{
+      background:white;border-radius:22px;padding:22px 20px;cursor:pointer;
+      transition:all .18s;box-shadow:0 4px 16px rgba(0,0,0,.08);
+      border:3px solid transparent;width:148px;
+    }
+    .diff-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+    .diff-card .icon{font-size:2.4em;margin-bottom:6px}
+    .diff-card .dname{font-size:1.1em;font-weight:800;margin-bottom:4px}
+    .diff-card .ddesc{font-size:.75em;color:#888;line-height:1.4}
+    .diff-easy{border-color:var(--green)}
+    .diff-hard{border-color:var(--orange)}
+
     @media(max-width:420px){
       .hira-big{font-size:4em}
       .choice{font-size:1.2em;padding:12px 4px}
@@ -249,17 +263,58 @@
     </div>
   </div>
 
-  <button class="btn btn-green" onclick="startGame()" style="font-size:1.2em;padding:16px 40px;margin-top:10px">
+  <button class="btn btn-green" onclick="goTo('s-diff')" style="font-size:1.2em;padding:16px 40px;margin-top:10px">
     ▶ はじめる！
   </button>
   <p style="font-size:.75em;color:#ccc;margin-top:12px">ローマじでよみがなをえらんでね 🌟</p>
+</div>
+
+<!-- ═══ SCREEN 1.5: DIFFICULTY ═══ -->
+<div class="screen" id="s-diff">
+  <div class="chars" style="margin-bottom:0">
+    <div class="char-wrap">
+      <svg class="c" width="70" height="80" viewBox="0 0 100 110">
+        <ellipse cx="50" cy="80" rx="32" ry="26" fill="#FFF5E4"/>
+        <circle cx="50" cy="45" r="38" fill="#FFF5E4"/>
+        <ellipse cx="22" cy="14" rx="13" ry="11" fill="#FFF5E4"/>
+        <ellipse cx="78" cy="14" rx="13" ry="11" fill="#FFF5E4"/>
+        <ellipse cx="22" cy="14" rx="7" ry="6" fill="#FFB7C5"/>
+        <ellipse cx="78" cy="14" rx="7" ry="6" fill="#FFB7C5"/>
+        <circle cx="37" cy="42" r="7" fill="#2d2d44"/>
+        <circle cx="63" cy="42" r="7" fill="#2d2d44"/>
+        <circle cx="39.5" cy="40" r="2.5" fill="white"/>
+        <circle cx="65.5" cy="40" r="2.5" fill="white"/>
+        <ellipse cx="26" cy="52" rx="9" ry="5" fill="#FFB7C5" opacity=".65"/>
+        <ellipse cx="74" cy="52" rx="9" ry="5" fill="#FFB7C5" opacity=".65"/>
+        <path d="M43 56 Q50 63 57 56" stroke="#2d2d44" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="14" cy="82" rx="9" ry="6" fill="#FFF5E4" transform="rotate(-25 14 82)"/>
+        <ellipse cx="86" cy="82" rx="9" ry="6" fill="#FFF5E4" transform="rotate(25 86 82)"/>
+      </svg>
+    </div>
+  </div>
+  <p class="stitle" style="margin-top:8px">むずかしさをえらんでね</p>
+  <p style="font-size:.82em;color:#aaa;margin-bottom:6px">あ〜ん　ぜんぶ45もじ！</p>
+
+  <div class="diff-row">
+    <div class="diff-card diff-easy" onclick="startGame('easy')">
+      <div class="icon">🌸</div>
+      <div class="dname" style="color:var(--green)">かんたん</div>
+      <div class="ddesc">あいうえお じゅんばんに でてくるよ</div>
+    </div>
+    <div class="diff-card diff-hard" onclick="startGame('hard')">
+      <div class="icon">🔥</div>
+      <div class="dname" style="color:var(--orange)">むずかしい</div>
+      <div class="ddesc">ランダムな じゅんばんで でてくるよ</div>
+    </div>
+  </div>
+  <button class="btn btn-grey" onclick="goTo('s-title')" style="font-size:.9em;margin-top:4px">← もどる</button>
 </div>
 
 <!-- ═══ SCREEN 2: GAME ═══ -->
 <div class="screen" id="s-game">
   <div class="top-bar">
     <button class="back-btn" onclick="confirmQuit()">✕</button>
-    <span class="badge">🌈 ひらがな</span>
+    <span class="badge" id="game-badge">🌈 ひらがな</span>
     <span style="width:36px"></span>
   </div>
 
@@ -367,7 +422,8 @@
   </div>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px">
-    <button class="btn btn-green"  onclick="startGame()">🔄 もういちど！</button>
+    <button class="btn btn-green"  onclick="startGame(state.diff)">🔄 もういちど！</button>
+    <button class="btn btn-yellow" onclick="goTo('s-diff')">🌈 むずかしさをかえる</button>
     <button class="btn btn-grey"   onclick="goTo('s-title')">🏠 トップへ</button>
   </div>
 </div>
@@ -423,7 +479,7 @@ const DB = [
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let state = { questions:[], current:0, correct:0, wrong:0, missed:[] };
+let state = { questions:[], current:0, correct:0, wrong:0, missed:[], diff:'' };
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function goTo(id){
@@ -440,11 +496,14 @@ function shuffle(arr){
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-function startGame(){
-  state.questions = shuffle(DB).slice(0, 10);
+function startGame(diff){
+  state.diff = diff;
+  state.questions = diff === 'easy' ? [...DB] : shuffle([...DB]);
   state.current = 0; state.correct = 0; state.wrong = 0; state.missed = [];
   document.getElementById('correct-count').textContent = '0';
   document.getElementById('wrong-count').textContent   = '0';
+  document.getElementById('game-badge').textContent =
+    diff === 'easy' ? '🌸 かんたん' : '🔥 むずかしい';
   goTo('s-game');
   renderQuestion();
 }
@@ -455,7 +514,7 @@ function renderQuestion(){
   const total = state.questions.length;
   const idx   = state.current;
 
-  document.getElementById('q-counter').textContent   = `もんだい ${idx+1} / ${total}`;
+  document.getElementById('q-counter').textContent   = `${idx+1} / ${total}もじ`;
   document.getElementById('q-score-top').textContent  = `⭐ ${state.correct}`;
   document.getElementById('prog-fill').style.width    = (idx/total*100) + '%';
 
